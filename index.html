@@ -91,7 +91,7 @@ function paint(){
 function publish(){state.updatedAt=Date.now();paint();if(db&&remoteReady)db.ref('matches/'+matchId).set(state).catch(()=>status('Нет связи с Firebase. Проверьте настройки проекта.',false));}
 function status(msg,ok){$('setupNotice').textContent=msg;$('setupNotice').className='status'+(ok?' ok':'');}
 function setRunning(on){if(on&&!state.running){state.running=true;state.updatedAt=Date.now();}else if(!on&&state.running){tick();state.running=false;}publish();}
-function tick(){if(state.running){const elapsed=(Date.now()-state.updatedAt)/1000;state.remaining=Math.max(0,state.remaining-elapsed);state.updatedAt=Date.now();if(state.remaining<=0)state.running=false;paint();if(db&&remoteReady)db.ref('matches/'+matchId).update({remaining:state.remaining,running:state.running,updatedAt:state.updatedAt});}}
+function tick(){if(state.running){const elapsed=(Date.now()-state.updatedAt)/1000;state.remaining+=elapsed;state.updatedAt=Date.now();paint();if(db&&remoteReady)db.ref('matches/'+matchId).update({remaining:state.remaining,running:state.running,updatedAt:state.updatedAt});}}
 setInterval(tick,250);
 function adjustScore(which,delta){state[which]=Math.max(0,state[which]+delta);publish();}
 $('homeName').addEventListener('change',e=>{state.homeName=e.target.value.trim()||'Команда 1';publish()});
@@ -115,7 +115,7 @@ if(firebaseConfig){
  const script=document.createElement('script');script.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';
  script.onload=()=>{const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js';s.onload=()=>{
   firebase.initializeApp(firebaseConfig);db=firebase.database();remoteReady=true;
-  db.ref('matches/'+matchId).on('value',snap=>{const v=snap.val();if(v){const localRun=state.running;state={...state,...v};if(state.running){const elapsed=(Date.now()-state.updatedAt)/1000;state.remaining=Math.max(0,state.remaining-elapsed);state.updatedAt=Date.now()}paint();status('Синхронизация подключена · матч '+matchId,true)}else if(view!=='display')publish();});
+  db.ref('matches/'+matchId).on('value',snap=>{const v=snap.val();if(v){const localRun=state.running;state={...state,...v};if(state.running){const elapsed=(Date.now()-state.updatedAt)/1000;state.remaining+=elapsed;state.updatedAt=Date.now()}paint();status('Синхронизация подключена · матч '+matchId,true)}else if(view!=='display')publish();});
  };document.head.appendChild(s)};document.head.appendChild(script);
 }
 </script>

@@ -5,95 +5,145 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Футбольное табло</title>
 <style>
-:root{color-scheme:dark;--bg:#101319;--panel:#1b2029;--text:#fff;--muted:#aeb7c4;--accent:#38a169}
+:root{color-scheme:dark;--bg:#101319;--panel:#1b2029;--text:#fff;--muted:#aeb7c4}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-main{max-width:760px;margin:auto;padding:14px}
-h1{font-size:1.25rem;margin:4px 0 14px}.note{font-size:.88rem;color:var(--muted);line-height:1.4}
-.card{background:var(--panel);border-radius:16px;padding:14px;margin:12px 0}
+main{max-width:760px;margin:auto;padding:14px}h1{font-size:1.25rem;margin:4px 0 14px}
+.note{font-size:.88rem;color:var(--muted);line-height:1.4}.card{background:var(--panel);border-radius:16px;padding:14px;margin:12px 0}
 .scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;background:#080a0e;border-radius:12px;padding:12px}
 .team{padding:10px 6px;border-radius:9px;text-align:center;font-weight:750;overflow-wrap:anywhere;min-width:0}
 .score{font-size:clamp(2rem,9vw,4rem);font-weight:850;line-height:1.1;white-space:nowrap}
 .clock{text-align:center;font-size:clamp(2.4rem,12vw,5rem);font-weight:850;font-variant-numeric:tabular-nums;margin:14px 0 2px}
-.period{text-align:center;color:#c2cad5;font-size:.9rem}
-.row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}
+.period{text-align:center;color:#c2cad5;font-size:.9rem}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}
 label{display:block;font-size:.9rem;color:var(--muted);margin:9px 0 5px}
 input,select,button{font:inherit;border-radius:10px;border:1px solid #454d5b;padding:11px;background:#11151c;color:#fff;width:100%}
-input[type=color]{height:45px;padding:4px}
-button{font-weight:700;cursor:pointer;background:#283242}button.primary{background:#1769aa;border-color:#1769aa}button.danger{background:#792d35;border-color:#792d35}
-button:active{transform:scale(.99)}.small{font-size:.83rem;padding:8px}.scorebuttons{display:flex;gap:8px;margin-top:8px}.scorebuttons button{padding:12px 6px}
-.hidden{display:none!important}.status{font-size:.85rem;color:#f6c76a;margin:8px 0}.status.ok{color:#86efac}.pill{display:inline-block;border-radius:99px;background:#303846;padding:4px 9px;font-size:.8rem;color:#dbe4ef}
+input[type=color]{height:45px;padding:4px}button{font-weight:700;cursor:pointer;background:#283242}button.primary{background:#1769aa;border-color:#1769aa}
+button.danger{background:#792d35;border-color:#792d35}button:active{transform:scale(.99)}.scorebuttons{display:flex;gap:8px;margin-top:8px}
+.scorebuttons button{padding:12px 6px}.hidden{display:none!important}.status{font-size:.85rem;color:#f6c76a;margin:8px 0}
+.status.ok{color:#86efac}.pill{display:inline-block;border-radius:99px;background:#303846;padding:4px 9px;font-size:.8rem;color:#dbe4ef}
 @media(max-width:420px){main{padding:9px}.card{padding:11px}.team{font-size:.85rem}.scoreboard{gap:5px;padding:8px}}
 </style>
 </head>
 <body>
 <main>
-  <h1>Футбольное табло <span class="pill" id="modeLabel">Пульт</span></h1>
-  <div id="setupNotice" class="status">Демо-режим: сначала можно проверить интерфейс. Для синхронизации пульта с оверлеем нужно подключить Firebase и опубликовать страницу.</div>
-  <section id="display">
-    <div class="scoreboard">
-      <div id="homeBadge" class="team" style="background:#1769aa">Команда 1</div>
-      <div class="score"><span id="homeScoreDisplay">0</span>:<span id="awayScoreDisplay">0</span></div>
-      <div id="awayBadge" class="team" style="background:#c62828">Команда 2</div>
-    </div>
-    <div class="clock" id="clockDisplay">00:00</div>
-    <div class="period" id="periodDisplay">Матч</div>
-  </section>
-
-  <section id="controller" class="card">
-    <div class="row">
-      <div><label for="homeName">Название команды 1</label><input id="homeName" maxlength="24" value="Команда 1"></div>
-      <div><label for="awayName">Название команды 2</label><input id="awayName" maxlength="24" value="Команда 2"></div>
-    </div>
-    <div class="row">
-      <div><label for="homeColor">Цвет команды 1</label><input type="color" id="homeColor" value="#1769aa"></div>
-      <div><label for="awayColor">Цвет команды 2</label><input type="color" id="awayColor" value="#c62828"></div>
-    </div>
-    <label for="period">Период / подпись</label><input id="period" maxlength="24" value="1-й тайм">
-    <div class="row">
-      <div class="card" style="margin:8px 0 0;padding:10px">
-        <div id="homeControlName" style="font-weight:750">Команда 1</div><div class="score" id="homeScoreControl">0</div>
-        <div class="scorebuttons"><button id="homeMinus" aria-label="Уменьшить счёт команды 1">−1</button><button class="primary" id="homePlus" aria-label="Увеличить счёт команды 1">+1</button></div>
-      </div>
-      <div class="card" style="margin:8px 0 0;padding:10px">
-        <div id="awayControlName" style="font-weight:750">Команда 2</div><div class="score" id="awayScoreControl">0</div>
-        <div class="scorebuttons"><button id="awayMinus" aria-label="Уменьшить счёт команды 2">−1</button><button class="primary" id="awayPlus" aria-label="Увеличить счёт команды 2">+1</button></div>
-      </div>
-    </div>
-    <label>Установка времени (минуты и секунды)</label>
-    <div class="row"><div><input id="minutes" type="number" min="0" max="999" value="0" aria-label="Минуты"></div><div><input id="seconds" type="number" min="0" max="59" value="0" aria-label="Секунды"></div><div><button id="setTime">Установить</button></div></div>
-    <div class="row" style="margin-top:8px"><button id="startStop" class="primary">Пуск</button><button id="minusMinute">−1 мин</button><button id="plusMinute">+1 мин</button></div>
-    <div class="row" style="margin-top:8px"><button id="minusTen">−10 сек</button><button id="plusTen">+10 сек</button><button id="reset" class="danger">Сброс счёта</button></div>
-    <p class="note">Пульт и табло используют один общий адрес матча. В опубликованной версии изменения должны передаваться через Firebase. Не используйте этот тестовый файл для официальной трансляции до проверки синхронизации.</p>
-  </section>
-  <div id="displayHelp" class="note hidden">Режим табло. Для IRLPro используйте адрес страницы с параметром <b>?view=display</b>.</div>
+<h1>Футбольное табло <span class="pill" id="modeLabel">Пульт</span></h1>
+<div id="setupNotice" class="status">Подключение к Firebase…</div>
+<section id="display">
+ <div class="scoreboard">
+  <div id="homeBadge" class="team" style="background:#1769aa">Команда 1</div>
+  <div class="score"><span id="homeScoreDisplay">0</span>:<span id="awayScoreDisplay">0</span></div>
+  <div id="awayBadge" class="team" style="background:#c62828">Команда 2</div>
+ </div>
+ <div class="clock" id="clockDisplay">00:00</div>
+ <div class="period" id="periodDisplay">Матч</div>
+</section>
+<section id="controller" class="card">
+ <label for="matchSelect">Поле / матч</label>
+ <select id="matchSelect">
+  <option value="field1">Поле 1</option><option value="field2">Поле 2</option><option value="field3">Поле 3</option>
+ </select>
+ <div class="row">
+  <div><label for="homeName">Название команды 1</label><input id="homeName" maxlength="24" value="Команда 1"></div>
+  <div><label for="awayName">Название команды 2</label><input id="awayName" maxlength="24" value="Команда 2"></div>
+ </div>
+ <div class="row">
+  <div><label for="homeColor">Цвет команды 1</label><input type="color" id="homeColor" value="#1769aa"></div>
+  <div><label for="awayColor">Цвет команды 2</label><input type="color" id="awayColor" value="#c62828"></div>
+ </div>
+ <label for="period">Период / подпись</label><input id="period" maxlength="24" value="1-й тайм">
+ <div class="row">
+  <div class="card" style="margin:8px 0 0;padding:10px">
+   <div id="homeControlName" style="font-weight:750">Команда 1</div><div class="score" id="homeScoreControl">0</div>
+   <div class="scorebuttons"><button id="homeMinus" aria-label="Уменьшить счёт команды 1">−1</button><button class="primary" id="homePlus" aria-label="Увеличить счёт команды 1">+1</button></div>
+  </div>
+  <div class="card" style="margin:8px 0 0;padding:10px">
+   <div id="awayControlName" style="font-weight:750">Команда 2</div><div class="score" id="awayScoreControl">0</div>
+   <div class="scorebuttons"><button id="awayMinus" aria-label="Уменьшить счёт команды 2">−1</button><button class="primary" id="awayPlus" aria-label="Увеличить счёт команды 2">+1</button></div>
+  </div>
+ </div>
+ <label>Установка начального времени (минуты и секунды)</label>
+ <div class="row"><div><input id="minutes" type="number" min="0" max="999" value="0" aria-label="Минуты"></div><div><input id="seconds" type="number" min="0" max="59" value="0" aria-label="Секунды"></div><div><button id="setTime">Установить</button></div></div>
+ <div class="row" style="margin-top:8px"><button id="startStop" class="primary">Пуск</button><button id="minusMinute">−1 мин</button><button id="plusMinute">+1 мин</button></div>
+ <div class="row" style="margin-top:8px"><button id="minusTen">−10 сек</button><button id="plusTen">+10 сек</button><button id="reset">Сброс счёта</button></div>
+ <button id="newMatch" class="danger" style="margin-top:10px">Новый матч</button>
+ <p class="note">У каждого поля свой независимый счёт и таймер. Для трансляции используйте ссылку с ?view=display&amp;match=field1 (или field2 / field3).</p>
+</section>
+<div id="displayHelp" class="note hidden">Режим табло. Для IRLPro используйте адрес страницы с параметрами ?view=display&amp;match=field1 (или field2 / field3).</div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const view=params.get('view')||'control';
-const matchId=(params.get('match')||'test-match').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,40)||'test-match';
+const validMatches=['field1','field2','field3'];
+let matchId=validMatches.includes(params.get('match'))?params.get('match'):'field1';
 if(view==='display'){$('controller').classList.add('hidden');$('modeLabel').textContent='Табло';$('displayHelp').classList.remove('hidden');}
-else {$('modeLabel').textContent='Пульт';}
-let state={homeName:'Команда 1',awayName:'Команда 2',homeColor:'#1769aa',awayColor:'#c62828',homeScore:0,awayScore:0,remaining:0,running:false,period:'1-й тайм',updatedAt:Date.now()};
-let ticker=null, db=null, remoteReady=false;
+else {$('modeLabel').textContent='Пульт';$('matchSelect').value=matchId;}
+const defaultState=()=>({homeName:'Команда 1',awayName:'Команда 2',homeColor:'#1769aa',awayColor:'#c62828',homeScore:0,awayScore:0,elapsed:0,running:false,period:'1-й тайм',updatedAt:Date.now()});
+let state=defaultState(), db=null, remoteReady=false, applyingRemote=false, lastTick=Date.now();
+const firebaseConfig={
+ apiKey:"AIzaSyB4bJk3-AJ1zVvQ9Qz5mN7t4hROyZJql_Y",
+ authDomain:"football-scoreboard-327ab.firebaseapp.com",
+ databaseURL:"https://football-scoreboard-327ab-default-rtdb.europe-west1.firebasedatabase.app",
+ projectId:"football-scoreboard-327ab",
+ storageBucket:"football-scoreboard-327ab.firebasestorage.app",
+ messagingSenderId:"134340658454",
+ appId:"1:134340658454:web:e18962f31fe7e2abf27c37"
+};
 function paint(){
  $('homeBadge').textContent=state.homeName;$('awayBadge').textContent=state.awayName;
  $('homeBadge').style.background=state.homeColor;$('awayBadge').style.background=state.awayColor;
  $('homeScoreDisplay').textContent=state.homeScore;$('awayScoreDisplay').textContent=state.awayScore;
  $('homeControlName').textContent=state.homeName;$('awayControlName').textContent=state.awayName;
  $('homeScoreControl').textContent=state.homeScore;$('awayScoreControl').textContent=state.awayScore;
- $('homeName').value=state.homeName;$('awayName').value=state.awayName;
- $('homeColor').value=state.homeColor;$('awayColor').value=state.awayColor;$('period').value=state.period;
+ if(document.activeElement!==$('homeName'))$('homeName').value=state.homeName;
+ if(document.activeElement!==$('awayName'))$('awayName').value=state.awayName;
+ $('homeColor').value=state.homeColor;$('awayColor').value=state.awayColor;
+ if(document.activeElement!==$('period'))$('period').value=state.period;
  $('periodDisplay').textContent=state.period;
- const s=Math.max(0,Math.floor(state.remaining));$('clockDisplay').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+ const s=Math.max(0,Math.floor(state.elapsed));$('clockDisplay').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
  $('minutes').value=Math.floor(s/60);$('seconds').value=s%60;$('startStop').textContent=state.running?'Стоп':'Пуск';
 }
-function publish(){state.updatedAt=Date.now();paint();if(db&&remoteReady)db.ref('matches/'+matchId).set(state).catch(()=>status('Нет связи с Firebase. Проверьте настройки проекта.',false));}
-function status(msg,ok){$('setupNotice').textContent=msg;$('setupNotice').className='status'+(ok?' ok':'');}
-function setRunning(on){if(on&&!state.running){state.running=true;state.updatedAt=Date.now();}else if(!on&&state.running){tick();state.running=false;}publish();}
-function tick(){if(state.running){const elapsed=(Date.now()-state.updatedAt)/1000;state.remaining+=elapsed;state.updatedAt=Date.now();paint();if(db&&remoteReady)db.ref('matches/'+matchId).update({remaining:state.remaining,running:state.running,updatedAt:state.updatedAt});}}
+function status(msg,ok=false){$('setupNotice').textContent=msg;$('setupNotice').className='status'+(ok?' ok':'');}
+function ref(){return db.ref('matches/'+matchId)}
+function publish(){
+ if(applyingRemote)return;
+ state.updatedAt=Date.now();paint();
+ if(db&&remoteReady)ref().set(state).catch(()=>status('Ошибка записи в Firebase. Проверь правила базы.',false));
+}
+function stopAndUpdateElapsed(){
+ if(state.running){state.elapsed+=(Date.now()-state.updatedAt)/1000;state.updatedAt=Date.now();}
+}
+function setRunning(on){
+ if(on&&!state.running){state.running=true;state.updatedAt=Date.now();}
+ else if(!on&&state.running){stopAndUpdateElapsed();state.running=false;}
+ publish();
+}
+function tick(){
+ if(state.running){
+  const now=Date.now();state.elapsed+=(now-state.updatedAt)/1000;state.updatedAt=now;paint();
+  if(view!=='display'&&db&&remoteReady)ref().update({elapsed:state.elapsed,running:true,updatedAt:state.updatedAt}).catch(()=>{});
+ }
+}
 setInterval(tick,250);
 function adjustScore(which,delta){state[which]=Math.max(0,state[which]+delta);publish();}
+function listenToMatch(id){
+ matchId=id;
+ if(!db||!remoteReady)return;
+ ref().off();
+ ref().on('value',snap=>{
+  const v=snap.val();
+  if(v){
+   applyingRemote=true;state={...defaultState(),...v};
+   if(state.running)state.elapsed+=Math.max(0,(Date.now()-Number(state.updatedAt||Date.now()))/1000);
+   state.updatedAt=Date.now();paint();applyingRemote=false;
+   status('Синхронизация подключена · '+matchId,true);
+  } else if(view!=='display'){state=defaultState();publish();}
+ });
+}
+$('matchSelect').addEventListener('change',e=>{
+ const id=e.target.value;
+ const u=new URL(location.href);u.searchParams.set('match',id);u.searchParams.delete('view');
+ location.href=u.toString();
+});
 $('homeName').addEventListener('change',e=>{state.homeName=e.target.value.trim()||'Команда 1';publish()});
 $('awayName').addEventListener('change',e=>{state.awayName=e.target.value.trim()||'Команда 2';publish()});
 $('homeColor').addEventListener('input',e=>{state.homeColor=e.target.value;publish()});
@@ -101,23 +151,30 @@ $('awayColor').addEventListener('input',e=>{state.awayColor=e.target.value;publi
 $('period').addEventListener('change',e=>{state.period=e.target.value.trim()||'Матч';publish()});
 $('homePlus').onclick=()=>adjustScore('homeScore',1);$('homeMinus').onclick=()=>adjustScore('homeScore',-1);
 $('awayPlus').onclick=()=>adjustScore('awayScore',1);$('awayMinus').onclick=()=>adjustScore('awayScore',-1);
-$('setTime').onclick=()=>{state.remaining=Math.max(0,Number($('minutes').value||0)*60+Math.min(59,Math.max(0,Number($('seconds').value||0))));state.running=false;publish()};
+$('setTime').onclick=()=>{state.elapsed=Math.max(0,Number($('minutes').value||0)*60+Math.min(59,Math.max(0,Number($('seconds').value||0))));state.running=false;publish()};
 $('startStop').onclick=()=>setRunning(!state.running);
-$('minusMinute').onclick=()=>{state.remaining=Math.max(0,state.remaining-60);publish()};
-$('plusMinute').onclick=()=>{state.remaining+=60;publish()};
-$('minusTen').onclick=()=>{state.remaining=Math.max(0,state.remaining-10);publish()};
-$('plusTen').onclick=()=>{state.remaining+=10;publish()};
+$('minusMinute').onclick=()=>{stopAndUpdateElapsed();state.elapsed=Math.max(0,state.elapsed-60);state.updatedAt=Date.now();publish()};
+$('plusMinute').onclick=()=>{stopAndUpdateElapsed();state.elapsed+=60;state.updatedAt=Date.now();publish()};
+$('minusTen').onclick=()=>{stopAndUpdateElapsed();state.elapsed=Math.max(0,state.elapsed-10);state.updatedAt=Date.now();publish()};
+$('plusTen').onclick=()=>{stopAndUpdateElapsed();state.elapsed+=10;state.updatedAt=Date.now();publish()};
 $('reset').onclick=()=>{if(confirm('Сбросить счёт обеих команд?')){state.homeScore=0;state.awayScore=0;publish()}};
+$('newMatch').onclick=()=>{
+ if(!confirm('Начать новый матч на этом поле? Счёт станет 0:0, таймер остановится.'))return;
+ state={...defaultState(),homeName:$('homeName').value.trim()||'Команда 1',awayName:$('awayName').value.trim()||'Команда 2',homeColor:$('homeColor').value,awayColor:$('awayColor').value,period:$('period').value.trim()||'1-й тайм'};
+ publish();
+};
 paint();
-// Firebase Realtime Database integration is enabled after adding your project's config below.
-const firebaseConfig = null; // Replace null with the Firebase web config object.
-if(firebaseConfig){
- const script=document.createElement('script');script.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';
- script.onload=()=>{const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js';s.onload=()=>{
-  firebase.initializeApp(firebaseConfig);db=firebase.database();remoteReady=true;
-  db.ref('matches/'+matchId).on('value',snap=>{const v=snap.val();if(v){const localRun=state.running;state={...state,...v};if(state.running){const elapsed=(Date.now()-state.updatedAt)/1000;state.remaining+=elapsed;state.updatedAt=Date.now()}paint();status('Синхронизация подключена · матч '+matchId,true)}else if(view!=='display')publish();});
- };document.head.appendChild(s)};document.head.appendChild(script);
-}
+const script=document.createElement('script');script.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';
+script.onload=()=>{
+ const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js';
+ s.onload=()=>{
+  try{firebase.initializeApp(firebaseConfig);db=firebase.database();remoteReady=true;listenToMatch(matchId);}
+  catch(e){status('Не удалось подключиться к Firebase: '+e.message,false);}
+ };
+ s.onerror=()=>status('Не удалось загрузить библиотеку Firebase. Проверьте подключение к интернету.',false);
+ document.head.appendChild(s);
+};
+script.onerror=()=>status('Не удалось загрузить библиотеку Firebase. Проверьте подключение к интернету.',false);
+document.head.appendChild(script);
 </script>
-</body>
-</html>
+</body></html>

@@ -21,6 +21,20 @@ button.danger{background:#792d35;border-color:#792d35}button:active{transform:sc
 .scorebuttons button{padding:12px 6px}.hidden{display:none!important}.status{font-size:.85rem;color:#f6c76a;margin:8px 0}
 .status.ok{color:#86efac}.pill{display:inline-block;border-radius:99px;background:#303846;padding:4px 9px;font-size:.8rem;color:#dbe4ef}
 @media(max-width:420px){main{padding:9px}.card{padding:11px}.team{font-size:.85rem}.scoreboard{gap:5px;padding:8px}}
+/* Компактный режим для IRLPro: только само табло, без заголовка и служебных подсказок. */
+body.display-mode{background:transparent}
+body.display-mode main{width:max-content;max-width:100%;margin:0;padding:4px}
+body.display-mode h1,body.display-mode #setupNotice,body.display-mode #displayHelp{display:none!important}
+body.display-mode .scoreboard{width:min(440px,calc(100vw - 8px));gap:5px;padding:6px;border-radius:8px}
+body.display-mode .team{padding:4px 5px;border-radius:6px;font-size:clamp(.72rem,2.3vw,1rem);line-height:1.15}
+.team-badge{display:flex;align-items:center;justify-content:center;gap:5px;background:#168bd2!important;color:#fff!important;min-width:0}
+.team-name{min-width:0;overflow-wrap:anywhere}
+.kit-color{display:inline-block;flex:0 0 13px;width:13px;height:13px;border:1px solid rgba(255,255,255,.9);border-radius:2px;background:#1769aa}
+body.display-mode .kit-color{flex-basis:10px;width:10px;height:10px}
+body.display-mode .score{font-size:clamp(1.7rem,6vw,2.8rem);line-height:1}
+body.display-mode .clock{font-size:clamp(1.8rem,6.5vw,2.8rem);line-height:1;margin:4px 0 0}
+body.display-mode .period{font-size:.75rem;line-height:1.1;margin-top:2px}
+body.display-mode #display{display:block}
 </style>
 </head>
 <body>
@@ -29,9 +43,9 @@ button.danger{background:#792d35;border-color:#792d35}button:active{transform:sc
 <div id="setupNotice" class="status">Подключение к Firebase…</div>
 <section id="display">
  <div class="scoreboard">
-  <div id="homeBadge" class="team" style="background:#1769aa">Команда 1</div>
+  <div id="homeBadge" class="team team-badge"><span class="team-name">Команда 1</span><span id="homeKitColor" class="kit-color" aria-label="Цвет формы команды 1"></span></div>
   <div class="score"><span id="homeScoreDisplay">0</span>:<span id="awayScoreDisplay">0</span></div>
-  <div id="awayBadge" class="team" style="background:#c62828">Команда 2</div>
+  <div id="awayBadge" class="team team-badge"><span class="team-name">Команда 2</span><span id="awayKitColor" class="kit-color" aria-label="Цвет формы команды 2"></span></div>
  </div>
  <div class="clock" id="clockDisplay">00:00</div>
  <div class="period" id="periodDisplay">Матч</div>
@@ -75,7 +89,7 @@ const params=new URLSearchParams(location.search);
 const view=params.get('view')||'control';
 const validMatches=['field1','field2','field3'];
 let matchId=validMatches.includes(params.get('match'))?params.get('match'):'field1';
-if(view==='display'){$('controller').classList.add('hidden');$('modeLabel').textContent='Табло';$('displayHelp').classList.remove('hidden');}
+if(view==='display'){document.body.classList.add('display-mode');$('controller').classList.add('hidden');$('modeLabel').textContent='Табло';$('displayHelp').classList.remove('hidden');}
 else {$('modeLabel').textContent='Пульт';$('matchSelect').value=matchId;}
 const defaultState=()=>({homeName:'Команда 1',awayName:'Команда 2',homeColor:'#1769aa',awayColor:'#c62828',homeScore:0,awayScore:0,elapsed:0,running:false,period:'1-й тайм',updatedAt:Date.now()});
 let state=defaultState(), db=null, remoteReady=false, applyingRemote=false, lastTick=Date.now();
@@ -89,8 +103,8 @@ const firebaseConfig={
  appId:"1:134340658454:web:e18962f31fe7e2abf27c37"
 };
 function paint(){
- $('homeBadge').textContent=state.homeName;$('awayBadge').textContent=state.awayName;
- $('homeBadge').style.background=state.homeColor;$('awayBadge').style.background=state.awayColor;
+ $('homeBadge').querySelector('.team-name').textContent=state.homeName;$('awayBadge').querySelector('.team-name').textContent=state.awayName;
+ $('homeKitColor').style.background=state.homeColor;$('awayKitColor').style.background=state.awayColor;
  $('homeScoreDisplay').textContent=state.homeScore;$('awayScoreDisplay').textContent=state.awayScore;
  $('homeControlName').textContent=state.homeName;$('awayControlName').textContent=state.awayName;
  $('homeScoreControl').textContent=state.homeScore;$('awayScoreControl').textContent=state.awayScore;

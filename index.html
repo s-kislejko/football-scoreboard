@@ -143,7 +143,7 @@ function status(msg,ok=false){$('setupNotice').textContent=msg;$('setupNotice').
 function ref(){return db.ref('matches/'+matchId)}
 function publish(){
  if(applyingRemote)return;
- if(view!=='display'&&!signedIn)return;
+ if(view==='display'||!signedIn)return;
  state.updatedAt=Date.now();paint();
  if(db&&remoteReady)ref().set(state).catch(()=>status('Ошибка записи в Firebase. Проверь правила базы.',false));
 }
@@ -158,7 +158,7 @@ function setRunning(on){
 function tick(){
  if(state.running){
   const now=Date.now();state.elapsed+=(now-state.updatedAt)/1000;state.updatedAt=now;paint();
-  if(view!=='display'&&db&&remoteReady)ref().update({elapsed:state.elapsed,running:true,updatedAt:state.updatedAt}).catch(()=>{});
+  if(view!=='display'&&signedIn&&db&&remoteReady)ref().update({elapsed:state.elapsed,running:true,updatedAt:state.updatedAt}).catch(()=>{});
  }
 }
 setInterval(tick,250);

@@ -25,17 +25,18 @@ button.danger{background:#792d35;border-color:#792d35}button:active{transform:sc
 body.display-mode{background:transparent}
 body.display-mode main{width:max-content;max-width:100%;margin:0;padding:4px}
 body.display-mode h1,body.display-mode #setupNotice,body.display-mode #displayHelp{display:none!important}
-body.display-mode .scoreboard{width:min(440px,calc(100vw - 8px));gap:5px;padding:6px;border-radius:8px}
+body.display-mode #display{width:min(440px,calc(100vw - 8px))}
+body.display-mode .scoreboard{width:100%;gap:5px;padding:6px;border-radius:8px}
 body.display-mode .team{padding:4px 5px;border-radius:6px;font-size:calc(clamp(.72rem,2.3vw,1rem) + 1px);line-height:1.15}
 .team-badge{display:flex;align-items:center;justify-content:center;gap:5px;background:#168bd2!important;color:#fff!important;min-width:0}
 .team-name{min-width:0;overflow-wrap:anywhere}
 .kit-color{display:inline-block;flex:0 0 13px;width:13px;height:13px;border:1px solid rgba(255,255,255,.9);border-radius:2px;background:#1769aa}
 body.display-mode .kit-color{flex-basis:11px;width:11px;height:11px}
 body.display-mode .score{font-size:clamp(1.6rem,5.8vw,2.7rem);line-height:1}
-body.display-mode .clock{font-size:clamp(1.7rem,6.3vw,2.7rem);line-height:1;margin:0;text-align:left}
+body.display-mode .clock{font-size:clamp(1.5rem,5.5vw,2.4rem);line-height:1;margin:0;text-align:left}
 body.display-mode .period{font-size:.75rem;line-height:1.1;margin:0;text-align:left;align-self:start}
 body.display-mode #display{display:block}
-body.display-mode .display-meta{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:5px;align-items:start;margin-top:3px}
+body.display-mode .display-meta{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);width:100%;gap:5px;align-items:start;margin-top:3px}
 body.display-mode .display-meta .clock{grid-column:1;grid-row:1;justify-self:start}
 body.display-mode .display-meta .period{grid-column:3;grid-row:1;justify-self:start;min-width:0;overflow-wrap:anywhere}
 </style>

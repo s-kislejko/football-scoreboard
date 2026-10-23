@@ -39,6 +39,7 @@ body.display-mode #display{display:block}
 body.display-mode .display-meta{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);width:100%;gap:5px;align-items:start;margin-top:3px}
 body.display-mode .display-meta .clock{grid-column:1;grid-row:1;justify-self:start}
 body.display-mode .display-meta .period{grid-column:3;grid-row:1;justify-self:start;min-width:0;overflow-wrap:anywhere}
+#loginPanel{max-width:460px}#loginPanel h2{margin:0 0 8px;font-size:1.1rem}#loginPanel button{margin-top:10px}#loginError{color:#fca5a5;white-space:pre-wrap} .auth-top{display:flex;justify-content:space-between;align-items:center;gap:10px} .auth-top button{width:auto;padding:7px 12px;margin:0}
 </style>
 </head>
 <body>
@@ -56,7 +57,18 @@ body.display-mode .display-meta .period{grid-column:3;grid-row:1;justify-self:st
   <div class="period" id="periodDisplay">Матч</div>
  </div>
 </section>
-<section id="controller" class="card">
+<section id="loginPanel" class="card hidden">
+ <h2>Вход в пульт управления</h2>
+ <p class="note">Введи электронную почту и пароль, зарегистрированные в Firebase.</p>
+ <form id="loginForm">
+  <label for="loginEmail">Электронная почта</label><input id="loginEmail" type="email" autocomplete="username" required>
+  <label for="loginPassword">Пароль</label><input id="loginPassword" type="password" autocomplete="current-password" required>
+  <button class="primary" type="submit">Войти</button>
+ </form>
+ <div id="loginError" class="status" role="alert"></div>
+</section>
+<section id="controller" class="card hidden">
+ <div class="auth-top"><span class="note" id="signedInAs"></span><button id="signOut" type="button">Выйти</button></div>
  <label for="matchSelect">Поле / матч</label>
  <select id="matchSelect">
   <option value="field1">Поле 1</option><option value="field2">Поле 2</option><option value="field3">Поле 3</option>
@@ -97,6 +109,7 @@ const validMatches=['field1','field2','field3'];
 let matchId=validMatches.includes(params.get('match'))?params.get('match'):'field1';
 if(view==='display'){document.body.classList.add('display-mode');$('controller').classList.add('hidden');$('modeLabel').textContent='Табло';$('displayHelp').classList.remove('hidden');}
 else {$('modeLabel').textContent='Пульт';$('matchSelect').value=matchId;}
+let auth=null, signedIn=false;
 const defaultState=()=>({homeName:'Команда 1',awayName:'Команда 2',homeColor:'#1769aa',awayColor:'#c62828',homeScore:0,awayScore:0,elapsed:0,running:false,period:'1-й тайм',updatedAt:Date.now()});
 const paletteColors=['#111827','#dc2626','#15803d','#ea580c','#16a34a','#a3a30a','#65a30d','#84cc16','#1d4ed8','#db2777','#0369a1','#be185d','#0d9488','#78716c','#22c55e','#4ade80','#2563eb','#a855f7','#0284c7','#9333ea','#06b6d4','#94a3b8','#14b8a6','#cbd5e1','#7f1d1d','#ef4444','#854d0e','#f97316','#166534','#f59e0b','#16a34a','#eab308','#6d28d9','#ec4899','#64748b','#f472b6','#0f766e','#fdba74','#4d7c0f','#fde68a','#1e40af','#d946ef','#3b82f6','#e879f9','#38bdf8','#f5d0fe','#0891b2','#ffffff'];
 function buildPalette(which){const root=$(which+'Palette');root.innerHTML='';paletteColors.forEach(color=>{const b=document.createElement('button');b.type='button';b.className='swatch';b.style.background=color;b.title=color;b.setAttribute('aria-label','Выбрать цвет '+color);b.addEventListener('click',()=>{state[which+'Color']=color;publish()});root.appendChild(b)});}
@@ -130,6 +143,7 @@ function status(msg,ok=false){$('setupNotice').textContent=msg;$('setupNotice').
 function ref(){return db.ref('matches/'+matchId)}
 function publish(){
  if(applyingRemote)return;
+ if(view!=='display'&&!signedIn)return;
  state.updatedAt=Date.now();paint();
  if(db&&remoteReady)ref().set(state).catch(()=>status('Ошибка записи в Firebase. Проверь правила базы.',false));
 }
@@ -188,15 +202,35 @@ $('newMatch').onclick=()=>{
  publish();
 };
 paint();
+function showLoginError(message){$('loginError').textContent=message||'';}
+$('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();showLoginError('');
+ try{await auth.signInWithEmailAndPassword($('loginEmail').value.trim(),$('loginPassword').value);$('loginPassword').value='';}
+ catch(err){showLoginError('Не удалось войти. Проверь почту и пароль. ('+err.code+')');}
+});
+$('signOut').addEventListener('click',()=>auth.signOut());
 const script=document.createElement('script');script.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';
 script.onload=()=>{
- const s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js';
- s.onload=()=>{
-  try{firebase.initializeApp(firebaseConfig);db=firebase.database();remoteReady=true;listenToMatch(matchId);}
-  catch(e){status('Не удалось подключиться к Firebase: '+e.message,false);}
+ const a=document.createElement('script');a.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js';
+ a.onload=()=>{
+  const d=document.createElement('script');d.src='https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js';
+  d.onload=()=>{
+   try{
+    firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.database();remoteReady=true;
+    if(view==='display'){listenToMatch(matchId);status('Подключение к табло…',true);}
+    else auth.onAuthStateChanged(user=>{
+     signedIn=!!user;
+     $('controller').classList.toggle('hidden',!user);
+     $('loginPanel').classList.toggle('hidden',!!user);
+     $('setupNotice').classList.toggle('hidden',!!user);
+     if(user){$('signedInAs').textContent=user.email||'Вход выполнен';listenToMatch(matchId);status('Вход выполнен · '+matchId,true);}
+     else {if(db)db.ref('matches/'+matchId).off();status('Войди, чтобы управлять табло.',false);}
+    });
+   }catch(e){status('Не удалось подключиться к Firebase: '+e.message,false);}
+  };
+  d.onerror=()=>status('Не удалось загрузить Firebase Database.',false);document.head.appendChild(d);
  };
- s.onerror=()=>status('Не удалось загрузить библиотеку Firebase. Проверьте подключение к интернету.',false);
- document.head.appendChild(s);
+ a.onerror=()=>status('Не удалось загрузить Firebase Authentication.',false);document.head.appendChild(a);
 };
 script.onerror=()=>status('Не удалось загрузить библиотеку Firebase. Проверьте подключение к интернету.',false);
 document.head.appendChild(script);

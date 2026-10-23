@@ -26,15 +26,18 @@ body.display-mode{background:transparent}
 body.display-mode main{width:max-content;max-width:100%;margin:0;padding:4px}
 body.display-mode h1,body.display-mode #setupNotice,body.display-mode #displayHelp{display:none!important}
 body.display-mode .scoreboard{width:min(440px,calc(100vw - 8px));gap:5px;padding:6px;border-radius:8px}
-body.display-mode .team{padding:4px 5px;border-radius:6px;font-size:clamp(.72rem,2.3vw,1rem);line-height:1.15}
+body.display-mode .team{padding:4px 5px;border-radius:6px;font-size:calc(clamp(.72rem,2.3vw,1rem) + 1px);line-height:1.15}
 .team-badge{display:flex;align-items:center;justify-content:center;gap:5px;background:#168bd2!important;color:#fff!important;min-width:0}
 .team-name{min-width:0;overflow-wrap:anywhere}
 .kit-color{display:inline-block;flex:0 0 13px;width:13px;height:13px;border:1px solid rgba(255,255,255,.9);border-radius:2px;background:#1769aa}
-body.display-mode .kit-color{flex-basis:10px;width:10px;height:10px}
-body.display-mode .score{font-size:clamp(1.7rem,6vw,2.8rem);line-height:1}
-body.display-mode .clock{font-size:clamp(1.8rem,6.5vw,2.8rem);line-height:1;margin:4px 0 0}
-body.display-mode .period{font-size:.75rem;line-height:1.1;margin-top:2px}
+body.display-mode .kit-color{flex-basis:11px;width:11px;height:11px}
+body.display-mode .score{font-size:clamp(1.6rem,5.8vw,2.7rem);line-height:1}
+body.display-mode .clock{font-size:clamp(1.7rem,6.3vw,2.7rem);line-height:1;margin:0;text-align:left}
+body.display-mode .period{font-size:.75rem;line-height:1.1;margin:0;text-align:left;align-self:start}
 body.display-mode #display{display:block}
+body.display-mode .display-meta{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:5px;align-items:start;margin-top:3px}
+body.display-mode .display-meta .clock{grid-column:1;grid-row:1;justify-self:start}
+body.display-mode .display-meta .period{grid-column:3;grid-row:1;justify-self:start;min-width:0;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -47,8 +50,10 @@ body.display-mode #display{display:block}
   <div class="score"><span id="homeScoreDisplay">0</span>:<span id="awayScoreDisplay">0</span></div>
   <div id="awayBadge" class="team team-badge"><span class="team-name">Команда 2</span><span id="awayKitColor" class="kit-color" aria-label="Цвет формы команды 2"></span></div>
  </div>
- <div class="clock" id="clockDisplay">00:00</div>
- <div class="period" id="periodDisplay">Матч</div>
+ <div class="display-meta">
+  <div class="clock" id="clockDisplay">00:00</div>
+  <div class="period" id="periodDisplay">Матч</div>
+ </div>
 </section>
 <section id="controller" class="card">
  <label for="matchSelect">Поле / матч</label>

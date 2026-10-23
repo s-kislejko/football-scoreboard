@@ -16,7 +16,7 @@ main{max-width:760px;margin:auto;padding:14px}h1{font-size:1.25rem;margin:4px 0 
 .period{text-align:center;color:#c2cad5;font-size:.9rem}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}
 label{display:block;font-size:.9rem;color:var(--muted);margin:9px 0 5px}
 input,select,button{font:inherit;border-radius:10px;border:1px solid #454d5b;padding:11px;background:#11151c;color:#fff;width:100%}
-input[type=color]{height:45px;padding:4px}button{font-weight:700;cursor:pointer;background:#283242}button.primary{background:#1769aa;border-color:#1769aa}
+input[type=color]{height:45px;padding:4px}.color-picker{display:flex;gap:10px;align-items:flex-start}.palette-wrap{flex:1;min-width:0}.palette{display:grid;grid-template-columns:repeat(8,minmax(20px,1fr));gap:5px;margin-top:7px}.swatch{width:100%;aspect-ratio:1/1;min-height:22px;padding:0;border:2px solid #454d5b;border-radius:4px;box-shadow:none}.swatch.selected{outline:2px solid #fff;outline-offset:1px;border-color:#111}.color-preview{width:42px;height:42px;flex:0 0 42px;border:2px solid #dbe4ef;border-radius:6px;margin-top:7px}.color-hex{font-size:.78rem;color:var(--muted);margin-top:5px}.color-input-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}button{font-weight:700;cursor:pointer;background:#283242}button.primary{background:#1769aa;border-color:#1769aa}
 button.danger{background:#792d35;border-color:#792d35}button:active{transform:scale(.99)}.scorebuttons{display:flex;gap:8px;margin-top:8px}
 .scorebuttons button{padding:12px 6px}.hidden{display:none!important}.status{font-size:.85rem;color:#f6c76a;margin:8px 0}
 .status.ok{color:#86efac}.pill{display:inline-block;border-radius:99px;background:#303846;padding:4px 9px;font-size:.8rem;color:#dbe4ef}
@@ -65,9 +65,9 @@ body.display-mode .display-meta .period{grid-column:3;grid-row:1;justify-self:st
   <div><label for="homeName">Название команды 1</label><input id="homeName" maxlength="24" value="Команда 1"></div>
   <div><label for="awayName">Название команды 2</label><input id="awayName" maxlength="24" value="Команда 2"></div>
  </div>
- <div class="row">
-  <div><label for="homeColor">Цвет команды 1</label><input type="color" id="homeColor" value="#1769aa"></div>
-  <div><label for="awayColor">Цвет команды 2</label><input type="color" id="awayColor" value="#c62828"></div>
+ <div class="row" style="align-items:flex-start;gap:14px">
+  <div style="flex:1"><label>Цвет формы команды 1</label><div class="color-picker"><div class="palette-wrap"><div class="palette" id="homePalette" aria-label="Палитра команды 1"></div><div class="color-hex" id="homeColorHex">#1769AA</div></div><div class="color-preview" id="homeColorPreview"></div></div><input class="color-input-hidden" type="color" id="homeColor" value="#1769aa" tabindex="-1" aria-hidden="true"></div>
+  <div style="flex:1"><label>Цвет формы команды 2</label><div class="color-picker"><div class="palette-wrap"><div class="palette" id="awayPalette" aria-label="Палитра команды 2"></div><div class="color-hex" id="awayColorHex">#C62828</div></div><div class="color-preview" id="awayColorPreview"></div></div><input class="color-input-hidden" type="color" id="awayColor" value="#c62828" tabindex="-1" aria-hidden="true"></div>
  </div>
  <label for="period">Период / подпись</label><input id="period" maxlength="24" value="1-й тайм">
  <div class="row">
@@ -98,6 +98,10 @@ let matchId=validMatches.includes(params.get('match'))?params.get('match'):'fiel
 if(view==='display'){document.body.classList.add('display-mode');$('controller').classList.add('hidden');$('modeLabel').textContent='Табло';$('displayHelp').classList.remove('hidden');}
 else {$('modeLabel').textContent='Пульт';$('matchSelect').value=matchId;}
 const defaultState=()=>({homeName:'Команда 1',awayName:'Команда 2',homeColor:'#1769aa',awayColor:'#c62828',homeScore:0,awayScore:0,elapsed:0,running:false,period:'1-й тайм',updatedAt:Date.now()});
+const paletteColors=['#111827','#dc2626','#15803d','#ea580c','#16a34a','#a3a30a','#65a30d','#84cc16','#1d4ed8','#db2777','#0369a1','#be185d','#0d9488','#78716c','#22c55e','#4ade80','#2563eb','#a855f7','#0284c7','#9333ea','#06b6d4','#94a3b8','#14b8a6','#cbd5e1','#7f1d1d','#ef4444','#854d0e','#f97316','#166534','#f59e0b','#16a34a','#eab308','#6d28d9','#ec4899','#64748b','#f472b6','#0f766e','#fdba74','#4d7c0f','#fde68a','#1e40af','#d946ef','#3b82f6','#e879f9','#38bdf8','#f5d0fe','#0891b2','#ffffff'];
+function buildPalette(which){const root=$(which+'Palette');root.innerHTML='';paletteColors.forEach(color=>{const b=document.createElement('button');b.type='button';b.className='swatch';b.style.background=color;b.title=color;b.setAttribute('aria-label','Выбрать цвет '+color);b.addEventListener('click',()=>{state[which+'Color']=color;publish()});root.appendChild(b)});}
+function paintPalette(which,color){const root=$(which+'Palette');if(!root)return;root.querySelectorAll('.swatch').forEach(b=>{const selected=b.title.toLowerCase()===String(color).toLowerCase();b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',selected?'true':'false')});$(which+'ColorPreview').style.background=color;$(which+'ColorHex').textContent=String(color).toUpperCase();}
+buildPalette('home');buildPalette('away');
 let state=defaultState(), db=null, remoteReady=false, applyingRemote=false, lastTick=Date.now();
 const firebaseConfig={
  apiKey:"AIzaSyB4bJk3-AJ1zVvQ9Qz5mN7t4hROyZJql_Y",
@@ -116,7 +120,7 @@ function paint(){
  $('homeScoreControl').textContent=state.homeScore;$('awayScoreControl').textContent=state.awayScore;
  if(document.activeElement!==$('homeName'))$('homeName').value=state.homeName;
  if(document.activeElement!==$('awayName'))$('awayName').value=state.awayName;
- $('homeColor').value=state.homeColor;$('awayColor').value=state.awayColor;
+ $('homeColor').value=state.homeColor;$('awayColor').value=state.awayColor;paintPalette('home',state.homeColor);paintPalette('away',state.awayColor);
  if(document.activeElement!==$('period'))$('period').value=state.period;
  $('periodDisplay').textContent=state.period;
  const s=Math.max(0,Math.floor(state.elapsed));$('clockDisplay').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
